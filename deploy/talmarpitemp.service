@@ -1,0 +1,19 @@
+[Unit]
+Description=TalmarPiTemp temperature monitor
+After=local-fs.target
+# Uncomment and adjust when the CSV lives on a USB drive or another mount.
+#RequiresMountsFor=/media/pi/USB
+
+[Service]
+Type=simple
+# Change User and the paths below to match your Raspberry Pi.
+User=pi
+WorkingDirectory=/home/pi/TalmarPiTemp
+ExecStart=/usr/bin/python3 /home/pi/TalmarPiTemp/monitor.py --csv /home/pi/TalmarPiTemp/temperature.csv
+Restart=on-failure
+RestartSec=10
+# The live terminal dashboard is skipped automatically when there is no terminal.
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

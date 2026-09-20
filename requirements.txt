@@ -1,0 +1,2 @@
+# TalmarPiTemp needs no third party packages. It only uses the Python standard library.
+# Python 3.9 or newer is required.

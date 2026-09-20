@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>TalmarPiTemp</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>TalmarPiTemp</h1>
+      <p>Raspberry Pi Temperature Monitor</p>
+    </div>
+    <div class="topbar-controls">
+      <span class="pill" id="status" role="status">Connecting</span>
+      <div class="segmented" role="group" aria-label="Temperature unit">
+        <button type="button" data-unit="C" aria-pressed="true">Celsius</button>
+        <button type="button" data-unit="F" aria-pressed="false">Fahrenheit</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="current-title">
+      <h2 class="label" id="current-title">Current temperature</h2>
+      <p class="reading"><span id="temperature">-</span><span class="unit" id="temperature-unit"></span></p>
+      <p class="hint" id="hero-note">Updates every second</p>
+      <p class="banner" id="problems" hidden></p>
+    </section>
+
+    <section aria-labelledby="week-title">
+      <h2 class="section-title" id="week-title">Last 7 days</h2>
+      <div class="tiles">
+        <div class="tile"><span class="label">Maximum</span><span class="value" id="stat-max">-</span></div>
+        <div class="tile"><span class="label">Minimum</span><span class="value" id="stat-min">-</span></div>
+        <div class="tile"><span class="label">Average</span><span class="value" id="stat-avg">-</span></div>
+        <div class="tile"><span class="label">Readings in the last 24 hours</span><span class="value" id="stat-count-24h">-</span></div>
+        <div class="tile"><span class="label">Readings in the last 7 days</span><span class="value" id="stat-count-7d">-</span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="charts-title">
+      <h2 class="section-title" id="charts-title">Temperature charts</h2>
+
+      <article class="chart-card">
+        <h3>Last 24 hours</h3>
+        <p class="note" id="note-24h"></p>
+        <div class="chart-frame"><canvas id="chart-24h" class="chart" tabindex="0" role="img" aria-label="Temperature over the last 24 hours"></canvas></div>
+      </article>
+
+      <article class="chart-card">
+        <h3>Last 7 days</h3>
+        <p class="note" id="note-7d"></p>
+        <div class="chart-frame"><canvas id="chart-7d" class="chart" tabindex="0" role="img" aria-label="Temperature over the last 7 days"></canvas></div>
+      </article>
+
+      <article class="chart-card">
+        <h3>History</h3>
+        <div class="filters" role="group" aria-label="History time range">
+          <div class="segmented" id="range-presets">
+            <button type="button" data-range="1h">1 hour</button>
+            <button type="button" data-range="6h">6 hours</button>
+            <button type="button" data-range="24h">24 hours</button>
+            <button type="button" data-range="7d" aria-pressed="true">7 days</button>
+            <button type="button" data-range="30d">30 days</button>
+            <button type="button" data-range="90d">90 days</button>
+            <button type="button" data-range="1y">1 year</button>
+            <button type="button" data-range="all">All</button>
+            <button type="button" data-range="custom">Custom</button>
+          </div>
+          <form class="custom-range" id="custom-range" hidden>
+            <label>From <input type="datetime-local" id="range-from" step="60" required></label>
+            <label>To <input type="datetime-local" id="range-to" step="60" required></label>
+            <button type="submit" class="button">Show</button>
+          </form>
+        </div>
+        <p class="note" id="note-history">Drag across the chart to zoom in. Double click to reset.</p>
+        <div class="chart-frame"><canvas id="chart-history" class="chart" tabindex="0" role="img" aria-label="Temperature history for the selected range"></canvas></div>
+        <p class="message" id="history-message" role="status"></p>
+      </article>
+    </section>
+
+    <section aria-labelledby="info-title">
+      <h2 class="section-title" id="info-title">Monitor</h2>
+      <dl class="info">
+        <div><dt>Recording interval</dt><dd id="info-interval">-</dd></div>
+        <div><dt>CSV file</dt><dd id="info-csv" class="path">-</dd></div>
+        <div><dt>Last recorded reading</dt><dd id="info-last">-</dd></div>
+        <div><dt>Monitoring uptime</dt><dd id="info-uptime">-</dd></div>
+        <div><dt>Temperature source</dt><dd id="info-source" class="path">-</dd></div>
+        <div><dt>Raspberry Pi hostname</dt><dd id="info-hostname">-</dd></div>
+        <div><dt>Current time</dt><dd id="info-now">-</dd></div>
+      </dl>
+    </section>
+
+    <section aria-labelledby="settings-title">
+      <h2 class="section-title" id="settings-title">Settings</h2>
+      <div class="settings">
+        <form class="setting" id="interval-form">
+          <label for="interval-input">Recording interval in seconds</label>
+          <div class="row">
+            <input type="number" id="interval-input" min="1" max="86400" step="1" inputmode="numeric" required>
+            <button type="submit" class="button">Apply</button>
+          </div>
+          <p class="help">Takes effect immediately. The live reading keeps updating every second.</p>
+          <p class="message" id="interval-message" role="status"></p>
+        </form>
+
+        <form class="setting" id="csv-form">
+          <label for="csv-input">CSV file path</label>
+          <div class="row">
+            <input type="text" id="csv-input" spellcheck="false" autocomplete="off" required>
+            <button type="submit" class="button">Apply</button>
+          </div>
+          <label class="check"><input type="checkbox" id="copy-history"> Copy the existing history into the new file</label>
+          <p class="help">The current file is never deleted. History is only copied when the box is ticked, and only into a new or empty file.</p>
+          <p class="message" id="csv-message" role="status"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script src="/chart.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
